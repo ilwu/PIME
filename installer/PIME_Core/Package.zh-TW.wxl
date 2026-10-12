@@ -55,13 +55,7 @@
   <String Id="Shortcut_Chephonetic" Value="設定注音輸入法" />
   <String Id="Shortcut_Cheez" Value="設定輕鬆輸入法" />
   <String Id="Shortcut_BrailleChewing" Value="設定點字酷音輸入法" />
-  <!-- UtilExtension Errors -->
-  <String Id="msierrXmlFileFailedRead" Value="Failed to read XML file" />
-  <String Id="msierrXmlFileFailedOpen" Value="Failed to open XML file" />
-  <String Id="msierrXmlFileFailedSelect" Value="Failed to find node in XML file" />
-  <String Id="msierrXmlFileFailedSave" Value="Failed to save XML file" />
-  
-  <String Id="CloseApplication_Description" Value="Closing applications" />
+  <String Id="OSNotSupported" Value="PIME 需要 Windows 10 或更新版本。" />
 
   <String Id="LegacyNsisBlockMessage" Value="您的系統已安裝舊版 PIME。請先從「設定」->「應用程式」將其解除安裝，重新啟動 Windows 後，再執行本安裝程式。" />
 

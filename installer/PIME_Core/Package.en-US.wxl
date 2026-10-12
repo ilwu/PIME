@@ -55,13 +55,7 @@
   <String Id="Shortcut_Chephonetic" Value="Setup Phonetic input method" />
   <String Id="Shortcut_Cheez" Value="Setup EZ Input method" />
   <String Id="Shortcut_BrailleChewing" Value="Setup Braille Chewing input method" />
-  <!-- UtilExtension Errors -->
-  <String Id="msierrXmlFileFailedRead" Value="Failed to read XML file" />
-  <String Id="msierrXmlFileFailedOpen" Value="Failed to open XML file" />
-  <String Id="msierrXmlFileFailedSelect" Value="Failed to find node in XML file" />
-  <String Id="msierrXmlFileFailedSave" Value="Failed to save XML file" />
-  
-  <String Id="CloseApplication_Description" Value="Closing applications" />
+  <String Id="OSNotSupported" Value="PIME requires Windows 10 or later." />
 
   <String Id="LegacyNsisBlockMessage" Value="An older version of PIME is installed. Please uninstall it from Settings -> Apps, restart Windows, then run this installer again." />
 

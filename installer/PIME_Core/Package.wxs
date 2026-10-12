@@ -12,19 +12,6 @@
 
     <MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" AllowSameVersionUpgrades="yes" Schedule="afterInstallValidate" />
 
-    <Upgrade Id="57C76F4B-6A34-453B-983C-1F033B423235">
-      <UpgradeVersion Minimum="0.0.0.0" Maximum="99.0.0.0" Property="OLD_TSX86" IncludeMinimum="yes" IncludeMaximum="no" />
-    </Upgrade>
-    <Upgrade Id="46A9E721-DFB6-4BAE-8BD1-678C30C99BC8">
-      <UpgradeVersion Minimum="0.0.0.0" Maximum="99.0.0.0" Property="OLD_TSX64" IncludeMinimum="yes" IncludeMaximum="no" />
-    </Upgrade>
-    <Upgrade Id="BE995960-93A1-4DF5-B5E3-F5E4EAC57B18">
-      <UpgradeVersion Minimum="0.0.0.0" Maximum="99.0.0.0" Property="OLD_TSARM64" IncludeMinimum="yes" IncludeMaximum="no" />
-    </Upgrade>
-    <!-- 
-      We set CompressionLevel="high" (mszip/lzx) because this MSI is now distributed 
-      as a standalone package, without an external NSIS wrapper to compress it.
-    -->
     <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
 
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="DisableShutdown" />
@@ -33,20 +20,23 @@
       <RegistrySearch Id="NativeArchSearch" Root="HKLM" Key="SYSTEM\CurrentControlSet\Control\Session Manager\Environment" Name="PROCESSOR_ARCHITECTURE" Type="raw" Bitness="always64" />
     </Property>
 
+    <Property Id="PIME_INSTALL_DIR">
+      <RegistrySearch Id="PimeInstallDirSearch" Root="HKLM" Key="Software\PIME" Type="raw" />
+    </Property>
+
+    <Property Id="WIN10_BUILD">
+      <RegistrySearch Id="Win10BuildSearch" Root="HKLM" Key="SOFTWARE\Microsoft\Windows NT\CurrentVersion" Name="CurrentBuild" Type="raw" />
+    </Property>
+    <Launch Condition="Installed OR WIN10_BUILD &gt;= 10240" Message="!(loc.OSNotSupported)" />
+
     <Property Id="LEGACY_NSIS_UNINSTALL_X86">
       <RegistrySearch Id="LegacyNsisSearchX86" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\PIME" Name="UninstallString" Type="raw" Bitness="always32" />
     </Property>
     <Property Id="LEGACY_NSIS_UNINSTALL_X64">
       <RegistrySearch Id="LegacyNsisSearchX64" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\PIME" Name="UninstallString" Type="raw" Bitness="always64" />
     </Property>
-    <Property Id="HYBRID_MSI_INSTALLER_TYPE">
-      <RegistrySearch Id="HybridMsiSearch" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\PIME" Name="InstallerType" Type="raw" Bitness="always32" />
-    </Property>
-    <Property Id="HYBRID_MSI_INSTALLER_TYPE_X64">
-      <RegistrySearch Id="HybridMsiSearchX64" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\PIME" Name="InstallerType" Type="raw" Bitness="always64" />
-    </Property>
     
-    <Launch Condition="Installed OR HYBRID_MSI_INSTALLER_TYPE=&quot;HybridMSI&quot; OR HYBRID_MSI_INSTALLER_TYPE_X64=&quot;HybridMSI&quot; OR (NOT LEGACY_NSIS_UNINSTALL_X86 AND NOT LEGACY_NSIS_UNINSTALL_X64)" Message="!(loc.LegacyNsisBlockMessage)" />
+    <Launch Condition="Installed OR (NOT LEGACY_NSIS_UNINSTALL_X86 AND NOT LEGACY_NSIS_UNINSTALL_X64)" Message="!(loc.LegacyNsisBlockMessage)" />
 
     <ui:WixUI Id="WixUI_FeatureTree" />
 
@@ -104,99 +94,96 @@
     </StandardDirectory>
 
     <!-- Features -->
-    <Feature Id="Main" Title="!(loc.Feat_Main_Title)" Level="1" AllowAbsent="no" Display="expand">
+    <Feature Id="Main" Title="!(loc.Feat_Main_Title)" Level="1" AllowAbsent="no" AllowAdvertise="no" Display="expand">
       <ComponentGroupRef Id="CoreBaseComponents" />
       <ComponentGroupRef Id="PythonBaseComponents" />
       <ComponentGroupRef Id="NodeBaseComponents" />
       <ComponentGroupRef Id="StartMenuComponents" />
 
       <!-- Python Input Methods Group -->
-      <Feature Id="Feat_PythonGroup" Title="!(loc.Feat_PythonGroup_Title)" Level="1">
-        <Feature Id="Feat_Chewing" Title="!(loc.Feat_Chewing_Title)" Level="1" Description="!(loc.Feat_Chewing_Desc)">
+      <Feature Id="Feat_PythonGroup" Title="!(loc.Feat_PythonGroup_Title)" Level="1" AllowAdvertise="no">
+        <Feature Id="Feat_Chewing" Title="!(loc.Feat_Chewing_Title)" Level="1" AllowAdvertise="no" Description="!(loc.Feat_Chewing_Desc)">
           <ComponentGroupRef Id="IM_Chewing" />
           <ComponentGroupRef Id="Shortcuts_Chewing" />
         </Feature>
 
-        <Feature Id="Feat_CinGroup" Title="!(loc.Feat_CinGroup_Title)" Level="1">
+        <Feature Id="Feat_CinGroup" Title="!(loc.Feat_CinGroup_Title)" Level="2" AllowAdvertise="no">
           <ComponentGroupRef Id="CinbaseBaseComponents" />
 
-          <Feature Id="Feat_Checj" Title="!(loc.Feat_Checj_Title)" Level="1" Description="!(loc.Feat_Checj_Desc)">
+          <Feature Id="Feat_Checj" Title="!(loc.Feat_Checj_Title)" Level="2" AllowAdvertise="no" Description="!(loc.Feat_Checj_Desc)">
             <ComponentGroupRef Id="IM_Checj" />
             <ComponentGroupRef Id="Shortcuts_Checj" />
           </Feature>
 
-          <Feature Id="Feat_Cheliu" Title="!(loc.Feat_Cheliu_Title)" Level="2" Description="!(loc.Feat_Cheliu_Desc)">
+          <Feature Id="Feat_Cheliu" Title="!(loc.Feat_Cheliu_Title)" Level="2" AllowAdvertise="no" Description="!(loc.Feat_Cheliu_Desc)">
             <ComponentGroupRef Id="IM_Cheliu" />
             <ComponentGroupRef Id="Shortcuts_Cheliu" />
           </Feature>
 
-          <Feature Id="Feat_Chearray" Title="!(loc.Feat_Chearray_Title)" Level="2" Description="!(loc.Feat_Chearray_Desc)">
+          <Feature Id="Feat_Chearray" Title="!(loc.Feat_Chearray_Title)" Level="2" AllowAdvertise="no" Description="!(loc.Feat_Chearray_Desc)">
             <ComponentGroupRef Id="IM_Chearray" />
             <ComponentGroupRef Id="Shortcuts_Chearray" />
           </Feature>
 
-          <Feature Id="Feat_Chedayi" Title="!(loc.Feat_Chedayi_Title)" Level="2" Description="!(loc.Feat_Chedayi_Desc)">
+          <Feature Id="Feat_Chedayi" Title="!(loc.Feat_Chedayi_Title)" Level="2" AllowAdvertise="no" Description="!(loc.Feat_Chedayi_Desc)">
             <ComponentGroupRef Id="IM_Chedayi" />
             <ComponentGroupRef Id="Shortcuts_Chedayi" />
           </Feature>
 
-          <Feature Id="Feat_Chepinyin" Title="!(loc.Feat_Chepinyin_Title)" Level="2" Description="!(loc.Feat_Chepinyin_Desc)">
+          <Feature Id="Feat_Chepinyin" Title="!(loc.Feat_Chepinyin_Title)" Level="2" AllowAdvertise="no" Description="!(loc.Feat_Chepinyin_Desc)">
             <ComponentGroupRef Id="IM_Chepinyin" />
             <ComponentGroupRef Id="Shortcuts_Chepinyin" />
           </Feature>
 
-          <Feature Id="Feat_Chesimplex" Title="!(loc.Feat_Chesimplex_Title)" Level="2" Description="!(loc.Feat_Chesimplex_Desc)">
+          <Feature Id="Feat_Chesimplex" Title="!(loc.Feat_Chesimplex_Title)" Level="2" AllowAdvertise="no" Description="!(loc.Feat_Chesimplex_Desc)">
             <ComponentGroupRef Id="IM_Chesimplex" />
             <ComponentGroupRef Id="Shortcuts_Chesimplex" />
           </Feature>
 
-          <Feature Id="Feat_Chephonetic" Title="!(loc.Feat_Chephonetic_Title)" Level="2" Description="!(loc.Feat_Chephonetic_Desc)">
+          <Feature Id="Feat_Chephonetic" Title="!(loc.Feat_Chephonetic_Title)" Level="2" AllowAdvertise="no" Description="!(loc.Feat_Chephonetic_Desc)">
             <ComponentGroupRef Id="IM_Chephonetic" />
             <ComponentGroupRef Id="Shortcuts_Chephonetic" />
           </Feature>
 
-          <Feature Id="Feat_Cheez" Title="!(loc.Feat_Cheez_Title)" Level="2" Description="!(loc.Feat_Cheez_Desc)">
+          <Feature Id="Feat_Cheez" Title="!(loc.Feat_Cheez_Title)" Level="2" AllowAdvertise="no" Description="!(loc.Feat_Cheez_Desc)">
             <ComponentGroupRef Id="IM_Cheez" />
             <ComponentGroupRef Id="Shortcuts_Cheez" />
           </Feature>
         </Feature>
 
-        <Feature Id="Feat_Cheeng" Title="!(loc.Feat_Cheeng_Title)" Level="2" Description="!(loc.Feat_Cheeng_Desc)">
+        <Feature Id="Feat_Cheeng" Title="!(loc.Feat_Cheeng_Title)" Level="2" AllowAdvertise="no" Description="!(loc.Feat_Cheeng_Desc)">
           <ComponentGroupRef Id="IM_Cheeng" />
         </Feature>
 
-        <Feature Id="Feat_BrailleChewing" Title="!(loc.Feat_BrailleChewing_Title)" Level="2" Description="!(loc.Feat_BrailleChewing_Desc)">
+        <Feature Id="Feat_BrailleChewing" Title="!(loc.Feat_BrailleChewing_Title)" Level="2" AllowAdvertise="no" Description="!(loc.Feat_BrailleChewing_Desc)">
           <ComponentGroupRef Id="IM_BrailleChewing" />
           <ComponentGroupRef Id="Shortcuts_BrailleChewing" />
         </Feature>
 
-        <Feature Id="Feat_Rime" Title="!(loc.Feat_Rime_Title)" Level="2" Description="!(loc.Feat_Rime_Desc)">
+        <Feature Id="Feat_Rime" Title="!(loc.Feat_Rime_Title)" Level="2" AllowAdvertise="no" Description="!(loc.Feat_Rime_Desc)">
           <ComponentGroupRef Id="IM_Rime" />
         </Feature>
       </Feature>
 
       <!-- Node Input Methods Group -->
-      <Feature Id="Feat_NodeGroup" Title="!(loc.Feat_NodeGroup_Title)" Level="1">
-        <Feature Id="Feat_McBopomofo" Title="!(loc.Feat_McBopomofo_Title)" Level="1" Description="!(loc.Feat_McBopomofo_Desc)">
+      <Feature Id="Feat_NodeGroup" Title="!(loc.Feat_NodeGroup_Title)" Level="2" AllowAdvertise="no">
+        <Feature Id="Feat_McBopomofo" Title="!(loc.Feat_McBopomofo_Title)" Level="2" AllowAdvertise="no" Description="!(loc.Feat_McBopomofo_Desc)">
           <ComponentGroupRef Id="IM_McBopomofo" />
         </Feature>
 
-        <Feature Id="Feat_McFoxim" Title="!(loc.Feat_McFoxim_Title)" Level="2" Description="!(loc.Feat_McFoxim_Desc)">
+        <Feature Id="Feat_McFoxim" Title="!(loc.Feat_McFoxim_Title)" Level="2" AllowAdvertise="no" Description="!(loc.Feat_McFoxim_Desc)">
           <ComponentGroupRef Id="IM_McFoxim" />
         </Feature>
 
-        <Feature Id="Feat_McTabim" Title="!(loc.Feat_McTabim_Title)" Level="2" Description="!(loc.Feat_McTabim_Desc)">
+        <Feature Id="Feat_McTabim" Title="!(loc.Feat_McTabim_Title)" Level="2" AllowAdvertise="no" Description="!(loc.Feat_McTabim_Desc)">
           <ComponentGroupRef Id="IM_McTabim" />
         </Feature>
 
-        <Feature Id="Feat_Emojime" Title="!(loc.Feat_Emojime_Title)" Level="2" Description="!(loc.Feat_Emojime_Desc)">
+        <Feature Id="Feat_Emojime" Title="!(loc.Feat_Emojime_Title)" Level="2" AllowAdvertise="no" Description="!(loc.Feat_Emojime_Desc)">
           <ComponentGroupRef Id="IM_Emojime" />
         </Feature>
       </Feature>
     </Feature>
-
-    <!-- Custom Actions: Task scheduler, Process termination, Launch on exit -->
-
 
     <!-- Text Service Registration x86 -->
     <SetProperty Id="CA_Register_TS_x86" Value="&quot;[SystemFolder]regsvr32.exe&quot; /s &quot;[X86DIR]PIMETextService.dll&quot;" Before="CA_Register_TS_x86" Sequence="execute" />
@@ -228,35 +215,24 @@
     <SetProperty Id="CA_Rollback_Register_TS_arm64" Value="&quot;[WindowsFolder]Sysnative\regsvr32.exe&quot; /u /s &quot;[ARM64DIR]PIMETextService.dll&quot;" Before="CA_Rollback_Register_TS_arm64" Sequence="execute" />
     <CustomAction Id="CA_Rollback_Register_TS_arm64" BinaryRef="Wix4UtilCA_$(sys.BUILDARCHSHORT)" DllEntry="WixQuietExec" Execute="rollback" Return="ignore" Impersonate="no" />
 
-    <!-- 3. Configure and register Scheduled Task -->
-    <SetProperty Id="CA_RegisterTask" Value="&quot;[SystemFolder]schtasks.exe&quot; /Create /TN &quot;\PIME\PIMELauncher&quot; /XML &quot;[INSTALLFOLDER]PIMELauncher_Task.xml&quot; /F" Before="CA_RegisterTask" Sequence="execute" />
-    <CustomAction Id="CA_RegisterTask" BinaryRef="Wix4UtilCA_$(sys.BUILDARCHSHORT)" DllEntry="WixQuietExec" Execute="deferred" Return="check" Impersonate="no" />
-
-    <SetProperty Id="CA_DeleteTask" Value="&quot;[SystemFolder]schtasks.exe&quot; /Delete /TN &quot;\PIME\PIMELauncher&quot; /F" Before="CA_DeleteTask" Sequence="execute" />
-    <CustomAction Id="CA_DeleteTask" BinaryRef="Wix4UtilCA_$(sys.BUILDARCHSHORT)" DllEntry="WixQuietExec" Execute="deferred" Return="ignore" Impersonate="no" />
-
     <!-- Stop PIMELauncher in all sessions before removing files -->
-    <SetProperty Id="CA_StopPIMELauncher" Value="&quot;[SystemFolder]taskkill.exe&quot; /F /IM PIMELauncher.exe" Before="CA_StopPIMELauncher" Sequence="execute" />
+    <SetProperty Id="CA_StopPIMELauncher" Value="&quot;[SystemFolder]taskkill.exe&quot; /F /T /IM PIMELauncher.exe" Before="CA_StopPIMELauncher" Sequence="execute" />
     <CustomAction Id="CA_StopPIMELauncher" BinaryRef="Wix4UtilCA_$(sys.BUILDARCHSHORT)" DllEntry="WixQuietExec" Execute="deferred" Return="ignore" Impersonate="no" />
 
     <InstallExecuteSequence>
       <Custom Action="CA_StopPIMELauncher" Before="RemoveFiles" Condition="Installed OR WIX_UPGRADE_DETECTED" />
 
-      <Custom Action="CA_Unregister_TS_x86" Before="RemoveFiles" Condition="$cmp_PIMETextService_x86=2" />
-      <Custom Action="CA_Unregister_TS_x64" Before="RemoveFiles" Condition="$cmp_PIMETextService_x64=2" />
-      <Custom Action="CA_Unregister_TS_arm64" Before="RemoveFiles" Condition="$cmp_PIMETextService_arm64=2" />
+      <Custom Action="CA_Unregister_TS_x86" Before="RemoveFiles" Condition="?cmp_PIMETextService_x86=3" />
+      <Custom Action="CA_Unregister_TS_x64" Before="RemoveFiles" Condition="?cmp_PIMETextService_x64=3" />
+      <Custom Action="CA_Unregister_TS_arm64" Before="RemoveFiles" Condition="?cmp_PIMETextService_arm64=3" />
 
-      <Custom Action="CA_DeleteTask" Before="RemoveFiles" Condition="(NOT UPGRADINGPRODUCTCODE) AND (REMOVE=&quot;ALL&quot;)" />
-      
       <Custom Action="CA_Rollback_Register_TS_x86" Before="CA_Register_TS_x86" Condition="$cmp_PIMETextService_x86=3" />
       <Custom Action="CA_Rollback_Register_TS_x64" Before="CA_Register_TS_x64" Condition="$cmp_PIMETextService_x64=3" />
       <Custom Action="CA_Rollback_Register_TS_arm64" Before="CA_Register_TS_arm64" Condition="$cmp_PIMETextService_arm64=3" />
 
-      <Custom Action="CA_Register_TS_x86" After="InstallFiles" Condition="$cmp_PIMETextService_x86=3" />
-      <Custom Action="CA_Register_TS_x64" After="InstallFiles" Condition="$cmp_PIMETextService_x64=3" />
-      <Custom Action="CA_Register_TS_arm64" After="InstallFiles" Condition="$cmp_PIMETextService_arm64=3" />
-
-      <Custom Action="CA_RegisterTask" Before="InstallFinalize" Condition="NOT (REMOVE=&quot;ALL&quot;)" />
+      <Custom Action="CA_Register_TS_x86" After="InstallFiles" Condition="NOT (REMOVE=&quot;ALL&quot;) AND (?cmp_PIMETextService_x86=3 OR $cmp_PIMETextService_x86=3)" />
+      <Custom Action="CA_Register_TS_x64" After="InstallFiles" Condition="NOT (REMOVE=&quot;ALL&quot;) AND (?cmp_PIMETextService_x64=3 OR $cmp_PIMETextService_x64=3)" />
+      <Custom Action="CA_Register_TS_arm64" After="InstallFiles" Condition="NOT (REMOVE=&quot;ALL&quot;) AND (?cmp_PIMETextService_arm64=3 OR $cmp_PIMETextService_arm64=3)" />
     </InstallExecuteSequence>
   </Package>
 
@@ -267,12 +243,7 @@
         <File Id="fil_version_txt" Source="..\..\version.txt" KeyPath="yes" />
       </Component>
       <Component Id="cmp_Cleanup_PIME_Folder" Guid="DAB2F1FE-5D12-4217-9102-13FA10915B3C">
-        <util:RemoveFolderEx On="uninstall" Property="INSTALLFOLDER" />
-      </Component>
-      <Component Id="cmp_HybridCleanup" Guid="CE657A9E-3BA5-4A37-9759-4089947849D9">
-        <RemoveRegistryKey Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\PIME" Action="removeOnInstall" />
-        <RemoveRegistryValue Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run" Name="PIMELauncher" />
-        <RemoveFile Id="RemoveOldUninstallExe" Name="uninstall.exe" On="install" />
+        <util:RemoveFolderEx On="uninstall" Property="PIME_INSTALL_DIR" />
       </Component>
       <Component Id="cmp_backends_json" Guid="524B0223-956A-4FE4-BD21-6A79F9C07538">
         <File Id="fil_backends_json" Source="..\..\backends.json" KeyPath="yes" />
@@ -280,10 +251,23 @@
       <Component Id="cmp_PIMELauncher_exe" Guid="C41BF65D-E87F-4B7C-A586-71A3770D5A38">
         <File Id="fil_PIMELauncher_exe" Source="..\..\build\PIMELauncher\PIMELauncher.exe" KeyPath="yes" />
       </Component>
-      <Component Id="cmp_PIMELauncher_Task_xml" Guid="1E0A2726-0D34-40DE-BD4F-08B500C81F08">
-        <File Id="fil_PIMELauncher_Task_xml" Source="..\PIMELauncher_Task.xml" KeyPath="yes" />
-        <util:XmlFile Id="SetTaskCommand" Action="setValue" File="[INSTALLFOLDER]PIMELauncher_Task.xml" ElementPath="/*[\[]local-name()='Task'[\]]/*[\[]local-name()='Actions'[\]]/*[\[]local-name()='Exec'[\]]/*[\[]local-name()='Command'[\]]" Value="[INSTALLFOLDER]PIMELauncher.exe" SelectionLanguage="XPath" />
-        <util:XmlFile Id="SetTaskWorkingDirectory" Action="setValue" File="[INSTALLFOLDER]PIMELauncher_Task.xml" ElementPath="/*[\[]local-name()='Task'[\]]/*[\[]local-name()='Actions'[\]]/*[\[]local-name()='Exec'[\]]/*[\[]local-name()='WorkingDirectory'[\]]" Value="[INSTALLFOLDER]" SelectionLanguage="XPath" />
+      <Component Id="cmp_PIMELauncher_Run" Guid="53E4CDD1-213E-4DF7-9E11-20739BF01315">
+        <RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Run" Name="PIMELauncher" Value="&quot;[INSTALLFOLDER]PIMELauncher.exe&quot;" Type="string" KeyPath="yes" />
+      </Component>
+      <Component Id="cmp_license_txt" Guid="A3B11CD1-213E-4DF7-9E11-20739BF01316">
+        <File Id="fil_license_txt" Source="..\..\LICENSE.txt" KeyPath="yes" />
+      </Component>
+      <Component Id="cmp_lgpl_txt" Guid="A4B11CD1-213E-4DF7-9E11-20739BF01317">
+        <File Id="fil_lgpl_txt" Source="..\..\LGPL-2.0.txt" KeyPath="yes" />
+      </Component>
+      <Component Id="cmp_psf_txt" Guid="A5B11CD1-213E-4DF7-9E11-20739BF01318">
+        <File Id="fil_psf_txt" Source="..\..\PSF.txt" KeyPath="yes" />
+      </Component>
+      <Component Id="cmp_apache_txt" Guid="A6B11CD1-213E-4DF7-9E11-20739BF01319">
+        <File Id="fil_apache_txt" Source="..\..\APACHE-2.0.txt" KeyPath="yes" />
+      </Component>
+      <Component Id="cmp_authors_txt" Guid="A7B11CD1-213E-4DF7-9E11-20739BF01320">
+        <File Id="fil_authors_txt" Source="..\..\AUTHORS.txt" KeyPath="yes" />
       </Component>
       <Component Id="cmp_PIME_Registry" Guid="870EEA01-C03C-4384-9BAA-4CFB7110C489">
         <RegistryValue Root="HKLM" Key="Software\PIME" Value="[INSTALLFOLDER]" Type="string" KeyPath="yes" />
@@ -296,8 +280,12 @@
       </Component>
       <Component Id="cmp_PIMETextService_arm64" Directory="ARM64DIR" Guid="D3D921EB-00AC-4355-87B7-E498BA6F0EB6" Condition="NATIVE_ARCH=&quot;ARM64&quot;">
         <File Id="fil_PIMETextService_arm64_fwd" Source="..\..\build_arm64\PIMETextService\Release\PIMETextService.dll" KeyPath="yes" />
-        <File Id="fil_PIMETextService_arm64_real" Source="..\..\build_arm64\PIMETextService\Release\PIMETextService_arm64.dll" />
-        <File Id="fil_PIMETextService_x64_real" Source="..\..\build_arm64\PIMETextService\Release\PIMETextService_x64.dll" />
+      </Component>
+      <Component Id="cmp_PIMETextService_arm64_real" Directory="ARM64DIR" Guid="B4D921EB-00AC-4355-87B7-E498BA6F0EB7" Condition="NATIVE_ARCH=&quot;ARM64&quot;">
+        <File Id="fil_PIMETextService_arm64_real" Source="..\..\build_arm64\PIMETextService\Release\PIMETextService_arm64.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="cmp_PIMETextService_x64_real" Directory="ARM64DIR" Guid="C5D921EB-00AC-4355-87B7-E498BA6F0EB8" Condition="NATIVE_ARCH=&quot;ARM64&quot;">
+        <File Id="fil_PIMETextService_x64_real" Source="..\..\build_arm64\PIMETextService\Release\PIMETextService_x64.dll" KeyPath="yes" />
       </Component>
     </ComponentGroup>
 
