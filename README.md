@@ -41,7 +41,12 @@ All parts are licensed under GNU LGPL v2.1 license.
         cmake . -Bbuild64 -G "Visual Studio 16 2019" -A x64
         cmake --build build64 --config Release --target PIMETextService
 
-*   The generated MSI installers and Bootstrapper will be in the `installer/PIME_Setup/bin/Release/` folder after running `dotnet build installer/PIME_WiX.sln` using the WiX Toolset v4.
+*   To build the installer, ensure the WiX Toolset v4 CLI is installed (`dotnet tool install --global wix --version 4.0.6`). Then run `build.bat` or:
+
+        dotnet build installer/PIME_WiX.sln -c Release
+        installer\build_multilingual.bat
+
+    The generated multilingual MSI package will be created at `installer/bin/PIME_Core_Multilingual.msi`.
 
 ## TSF References
 *   [Text Services Framework](http://msdn.microsoft.com/en-us/library/windows/desktop/ms629032%28v=vs.85%29.aspx)
