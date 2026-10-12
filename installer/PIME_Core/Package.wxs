@@ -4,6 +4,7 @@
   <Package Name="!(loc.ProductName)"
            Manufacturer="EasyIME"
            Version="$(var.ProductVersion)"
+           ProductCode="$(var.ProductCode)"
            UpgradeCode="679BCFE7-E923-40D9-9051-5E4DF83EF12A"
            Scope="perMachine"
            Codepage="65001"

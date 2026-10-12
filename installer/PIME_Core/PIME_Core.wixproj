@@ -1,10 +1,10 @@
 <Project Sdk="WixToolset.Sdk/4.0.6">
   <PropertyGroup>
-    <Platforms>x86;x64;ARM64</Platforms>
+    <Platforms>x86</Platforms>
     <Platform>x86</Platform>
     <Cultures>zh-TW;zh-CN;en-US</Cultures>
     <SuppressValidation>false</SuppressValidation>
-    <ReuseCabinetCache>false</ReuseCabinetCache>
+    <ReuseCabinetCache>true</ReuseCabinetCache>
     <CabinetCachePath>obj\cab_cache</CabinetCachePath>
   </PropertyGroup>
 
@@ -17,11 +17,13 @@
     <PimeVersionRaw Condition="'$(ProductVersion)' == '' and Exists('$(MSBuildProjectDirectory)\..\..\version.txt')">$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\..\..\version.txt').Trim())</PimeVersionRaw>
     <ProductVersion Condition="'$(ProductVersion)' == '' and '$(PimeVersionRaw)' != ''">$([System.Text.RegularExpressions.Regex]::Match('$(PimeVersionRaw)', '^\d+(\.\d+)*').Value)</ProductVersion>
     <ProductVersion Condition="'$(ProductVersion)' == ''">2.0.0.0</ProductVersion>
+    <ProductCode Condition="'$(ProductCode)' == ''">$([System.Guid]::NewGuid().ToString().ToUpper())</ProductCode>
   </PropertyGroup>
 
   <PropertyGroup>
     <DefineConstants>
       ProductVersion=$(ProductVersion);
+      ProductCode=$(ProductCode);
       LauncherDir=..\..\build\PIMELauncher;
       PythonDir=..\..\build\stage\python;
       CinbaseDir=..\..\build\stage\python\cinbase;

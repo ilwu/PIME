@@ -50,7 +50,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Install WiX Toolset
-        run: dotnet tool install --global wix
+        run: dotnet tool install --global wix --version 4.0.6
 
       - name: Run build.bat
         env:
@@ -71,6 +71,8 @@ jobs:
             build/PIMETextService/Release/PIMETextService.dll
             build64/PIMETextService/Release/PIMETextService.dll
             build_arm64/PIMETextService/Release/PIMETextService.dll
+            build_arm64/PIMETextService/Release/PIMETextService_arm64.dll
+            build_arm64/PIMETextService/Release/PIMETextService_x64.dll
 
       # ---------------------------------------------------------------
       # Sign binaries with the specified signing policy.
@@ -96,12 +98,20 @@ jobs:
           copy signed-binaries\build\PIMETextService\Release\PIMETextService.dll build\PIMETextService\Release\PIMETextService.dll
           copy signed-binaries\build64\PIMETextService\Release\PIMETextService.dll build64\PIMETextService\Release\PIMETextService.dll
           copy signed-binaries\build_arm64\PIMETextService\Release\PIMETextService.dll build_arm64\PIMETextService\Release\PIMETextService.dll
+          copy signed-binaries\build_arm64\PIMETextService\Release\PIMETextService_arm64.dll build_arm64\PIMETextService\Release\PIMETextService_arm64.dll
+          copy signed-binaries\build_arm64\PIMETextService\Release\PIMETextService_x64.dll build_arm64\PIMETextService\Release\PIMETextService_x64.dll
 
       # ---------------------------------------------------------------
-      # Build MSI installers and bootstrapper with signed binaries.
+      # Build MSI installers and multilingual package with signed binaries.
       # ---------------------------------------------------------------
       - name: Build the installer (WiX)
-        run: dotnet build installer/PIME_WiX.sln -c Release
+        run: |
+          cd installer
+          ..\python\python3\python.exe stage_payload.py
+          ..\python\python3\python.exe generate_harvest_wxs.py
+          dotnet build PIME_WiX.sln -c Release
+          call build_multilingual.bat
+          cd ..
 
       # ---------------------------------------------------------------
       # Upload installer for signing.
@@ -111,7 +121,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: unsigned-installer
-          path: installer/PIME_Setup/bin/Release/**/*.exe
+          path: installer/bin/PIME_Core_Multilingual.msi
           archive: false
 
       # ---------------------------------------------------------------
@@ -128,7 +138,7 @@ jobs:
           github-artifact-id: '${{ steps.upload-unsigned-installer.outputs.artifact-id }}'
           wait-for-completion: true
           output-artifact-directory: 'signed-installer'
-          skip-decompress: true  # installer exe is not a zip file.
+          skip-decompress: true  # installer is not a zip file.
 
       # ---------------------------------------------------------------
       # Create GitHub Release (only for release builds).
@@ -137,5 +147,5 @@ jobs:
         if: ${{ inputs.create-release }}
         uses: softprops/action-gh-release@v2
         with:
-          files: signed-installer/**/*.exe
+          files: signed-installer/**/*.msi
           generate_release_notes: true

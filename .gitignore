@@ -6,6 +6,8 @@ node/input_methods/McBopomofo
 node/input_methods/McFoxim
 node/input_methods/McTabim
 installer/*.exe
+installer/*.msi
+installer/bin/
 installer/**/bin/
 installer/**/obj/
 installer/**/.wix/

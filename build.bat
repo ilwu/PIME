@@ -26,11 +26,37 @@ echo DllGetClassObject=PIMETextService_x64.DllGetClassObject >> build_arm64\x64.
 echo DllRegisterServer=PIMETextService_x64.DllRegisterServer >> build_arm64\x64.def
 echo DllUnregisterServer=PIMETextService_x64.DllUnregisterServer >> build_arm64\x64.def
 
-cmd /c "call ""C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat"" x64_arm64 && link /dll /noentry /machine:arm64x /defArm64Native:build_arm64\arm64.def /def:build_arm64\x64.def /out:build_arm64\PIMETextService_forwarder.dll"
+set "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
+set "VCVARS="
+if exist "%VSWHERE%" (
+    for /f "usebackq tokens=*" %%i in (`"%VSWHERE%" -latest -prerelease -property installationPath`) do (
+        if exist "%%i\VC\Auxiliary\Build\vcvarsall.bat" set "VCVARS=%%i\VC\Auxiliary\Build\vcvarsall.bat"
+    )
+)
+if "%VCVARS%"=="" (
+    if exist "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" (
+        set "VCVARS=C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat"
+    ) else if exist "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" (
+        set "VCVARS=C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat"
+    )
+)
+if "%VCVARS%"=="" (
+    echo Error: Could not locate vcvarsall.bat for ARM64X linking.
+    exit /b 1
+)
+
+cmd /c "call ""%VCVARS%"" x64_arm64 && link /nologo /dll /noentry /machine:arm64x /defArm64Native:build_arm64\arm64.def /def:build_arm64\x64.def /out:build_arm64\PIMETextService_forwarder.dll"
+if %ERRORLEVEL% NEQ 0 (
+    echo Error: Failed to link ARM64X forwarder DLL.
+    exit /b %ERRORLEVEL%
+)
 
 copy /y build_arm64\PIMETextService\Release\PIMETextService.dll build_arm64\PIMETextService\Release\PIMETextService_arm64.dll
-copy /y build\PIMETextService\Release\PIMETextService.dll build_arm64\PIMETextService\Release\PIMETextService_x64.dll
+if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
+copy /y build64\PIMETextService\Release\PIMETextService.dll build_arm64\PIMETextService\Release\PIMETextService_x64.dll
+if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
 copy /y build_arm64\PIMETextService_forwarder.dll build_arm64\PIMETextService\Release\PIMETextService.dll
+if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
 
 echo "Start building McBopomofo"
 cd McBopomofoWeb
