@@ -3429,6 +3429,9 @@ class LoadRCinTable(threading.Thread):
         try:
             selCinFile = self.rcinFileList[self.cbTS.cfg.selRCinType]
             jsonPath = os.path.join(self.cbTS.cfg.getConfigDir(), selCinFile)
+            if not os.path.exists(jsonPath) and selCinFile == "liu.json":
+                cheliu_dir = os.path.join(os.path.expandvars("%APPDATA%"), "PIME", "cheliu")
+                jsonPath = os.path.join(cheliu_dir, selCinFile)
             if not os.path.exists(jsonPath):
                 jsonPath = os.path.join(self.cbTS.jsondir, selCinFile)
 
