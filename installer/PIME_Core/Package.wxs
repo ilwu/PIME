@@ -47,7 +47,6 @@
     
     <Launch Condition="Installed OR HYBRID_MSI_INSTALLER_TYPE=&quot;HybridMSI&quot; OR HYBRID_MSI_INSTALLER_TYPE_X64=&quot;HybridMSI&quot; OR (NOT LEGACY_NSIS_UNINSTALL_X86 AND NOT LEGACY_NSIS_UNINSTALL_X64)" Message="!(loc.LegacyNsisBlockMessage)" />
 
-    <WixVariable Id="WixUILicenseRtf" Value="..\License.rtf" />
     <ui:WixUI Id="WixUI_FeatureTree" />
 
     <Property Id="WixShellExecTarget" Value="[#fil_PIMELauncher_exe]" />
@@ -56,7 +55,7 @@
                   DllEntry="WixShellExec"
                   Impersonate="yes" />
 
-    <!-- Bypass LicenseAgreementDlg in the MSI (since Burn already shows it) -->
+    <!-- Bypass LicenseAgreementDlg in the MSI -->
     <UI>
       <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="CustomizeDlg" Order="99" Condition="NOT Installed" />
       <Publish Dialog="CustomizeDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="99" Condition="NOT Installed" />
