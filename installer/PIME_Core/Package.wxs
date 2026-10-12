@@ -118,11 +118,9 @@
 
         <Feature Id="Feat_CinGroup" Title="!(loc.Feat_CinGroup_Title)" Level="1">
           <ComponentGroupRef Id="CinbaseBaseComponents" />
-          <ComponentGroupRef Id="Cinbase_Json_shared" />
 
           <Feature Id="Feat_Checj" Title="!(loc.Feat_Checj_Title)" Level="1" Description="!(loc.Feat_Checj_Desc)">
             <ComponentGroupRef Id="IM_Checj" />
-            <ComponentGroupRef Id="Cinbase_Json_checj" />
             <ComponentGroupRef Id="Shortcuts_Checj" />
           </Feature>
 
@@ -133,37 +131,31 @@
 
           <Feature Id="Feat_Chearray" Title="!(loc.Feat_Chearray_Title)" Level="2" Description="!(loc.Feat_Chearray_Desc)">
             <ComponentGroupRef Id="IM_Chearray" />
-            <ComponentGroupRef Id="Cinbase_Json_chearray" />
             <ComponentGroupRef Id="Shortcuts_Chearray" />
           </Feature>
 
           <Feature Id="Feat_Chedayi" Title="!(loc.Feat_Chedayi_Title)" Level="2" Description="!(loc.Feat_Chedayi_Desc)">
             <ComponentGroupRef Id="IM_Chedayi" />
-            <ComponentGroupRef Id="Cinbase_Json_chedayi" />
             <ComponentGroupRef Id="Shortcuts_Chedayi" />
           </Feature>
 
           <Feature Id="Feat_Chepinyin" Title="!(loc.Feat_Chepinyin_Title)" Level="2" Description="!(loc.Feat_Chepinyin_Desc)">
             <ComponentGroupRef Id="IM_Chepinyin" />
-            <ComponentGroupRef Id="Cinbase_Json_chepinyin" />
             <ComponentGroupRef Id="Shortcuts_Chepinyin" />
           </Feature>
 
           <Feature Id="Feat_Chesimplex" Title="!(loc.Feat_Chesimplex_Title)" Level="2" Description="!(loc.Feat_Chesimplex_Desc)">
             <ComponentGroupRef Id="IM_Chesimplex" />
-            <ComponentGroupRef Id="Cinbase_Json_chesimplex" />
             <ComponentGroupRef Id="Shortcuts_Chesimplex" />
           </Feature>
 
           <Feature Id="Feat_Chephonetic" Title="!(loc.Feat_Chephonetic_Title)" Level="2" Description="!(loc.Feat_Chephonetic_Desc)">
             <ComponentGroupRef Id="IM_Chephonetic" />
-            <ComponentGroupRef Id="Cinbase_Json_chephonetic" />
             <ComponentGroupRef Id="Shortcuts_Chephonetic" />
           </Feature>
 
           <Feature Id="Feat_Cheez" Title="!(loc.Feat_Cheez_Title)" Level="2" Description="!(loc.Feat_Cheez_Desc)">
             <ComponentGroupRef Id="IM_Cheez" />
-            <ComponentGroupRef Id="Cinbase_Json_cheez" />
             <ComponentGroupRef Id="Shortcuts_Cheez" />
           </Feature>
         </Feature>

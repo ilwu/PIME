@@ -1,8 +1,7 @@
-import os
 import hashlib
-import sys
+import os
 
-def generate_wxs(dir_path, component_group_id, directory_ref_id, var_name, output_file, exclude_dirs=None, exclude_files=None):
+def generate_wxs(dir_path, component_group_id, directory_ref_id, var_name, output_file, exclude_dirs=None, exclude_files=None, extra_components=None):
     exclude_dirs = set(exclude_dirs or [])
     exclude_files = set(exclude_files or [])
     
@@ -71,6 +70,11 @@ def generate_wxs(dir_path, component_group_id, directory_ref_id, var_name, outpu
             lines.append(f'        <File Id="{file_id}" KeyPath="yes" Source="{file_source}" />')
             lines.append('      </Component>')
             
+    if extra_components:
+        for comp in extra_components:
+            lines.append(comp)
+            file_counter += 1
+
     lines.append('    </ComponentGroup>')
     lines.append('  </Fragment>')
     lines.append('</Wix>')
@@ -85,24 +89,32 @@ if __name__ == '__main__':
     stage_dir = os.path.join(base_dir, 'build', 'stage')
     target_installer_dir = os.path.join(base_dir, 'installer', 'PIME_Core', 'Harvest')
     
-    # 1. Python Base (excluding input_methods and cinbase)
+    # 1. Python Base (excluding input_methods and cinbase, but including input_methods/__init__.py)
+    extra_py_base = []
+    py_im_init = os.path.join(stage_dir, 'python', 'input_methods', '__init__.py')
+    if os.path.exists(py_im_init):
+        extra_py_base.append('      <Component Id="cmp_python_im_init" Directory="INSTALLFOLDER_PYTHON_IM" Guid="*">')
+        extra_py_base.append('        <File Id="fil_python_im_init" KeyPath="yes" Source="$(var.PythonDir)\\input_methods\\__init__.py" />')
+        extra_py_base.append('      </Component>')
+
     generate_wxs(
         dir_path=os.path.join(stage_dir, 'python'),
         component_group_id='PythonBaseComponents',
         directory_ref_id='INSTALLFOLDER_PYTHON',
         var_name='PythonDir',
         output_file=os.path.join(target_installer_dir, 'Harvest_PythonBase.wxs'),
-        exclude_dirs=['input_methods', 'cinbase']
+        exclude_dirs=['input_methods', 'cinbase'],
+        extra_components=extra_py_base
     )
     
-    # 2. Cinbase Base (excluding cin and json)
+    # 2. Cinbase Base (including json, excluding raw cin source files)
     generate_wxs(
         dir_path=os.path.join(stage_dir, 'python', 'cinbase'),
         component_group_id='CinbaseBaseComponents',
         directory_ref_id='INSTALLFOLDER_CINBASE',
         var_name='CinbaseDir',
         output_file=os.path.join(target_installer_dir, 'Harvest_CinbaseBase.wxs'),
-        exclude_dirs=['cin', 'json']
+        exclude_dirs=['cin']
     )
     
     # 3. Node Base (excluding input_methods)
@@ -132,13 +144,16 @@ if __name__ == '__main__':
     ]
     
     for folder, cg, dref, vname in py_ims:
+        exclude = ['.git']
+        if folder == 'rime':
+            exclude.append('brise')
         generate_wxs(
             dir_path=os.path.join(stage_dir, 'python', 'input_methods', folder),
             component_group_id=cg,
             directory_ref_id=dref,
             var_name=vname,
             output_file=os.path.join(target_installer_dir, f'Harvest_IM_{folder}.wxs'),
-            exclude_dirs=['.git']
+            exclude_dirs=exclude
         )
         
     # Node Input Methods
@@ -153,8 +168,7 @@ if __name__ == '__main__':
         src = os.path.join(stage_dir, 'node', 'input_methods', folder)
         if os.path.exists(src):
             exclude = ['.git']
-            if folder == 'emojime':
-                exclude.append('node_modules')
+            # Note: emojime includes committed node_modules/emojione runtime dependency
             generate_wxs(
                 dir_path=src,
                 component_group_id=cg,
@@ -165,45 +179,3 @@ if __name__ == '__main__':
             )
         else:
             print(f"Skipping {folder} because {src} does not exist yet.")
-
-    # Generate JSON components
-    ime_json_map = {
-        'chepinyin': ["thpinyin.json", "pinyin.json", "roman.json", "thpinyin.txt"],
-        'chesimplex': ["simplecj.json", "simplex.json", "simplex5.json"],
-        'cheez': ["ez.json", "ezsmall.json", "ezmid.json", "ezbig.json", "ezphrase.txt"],
-        'chephonetic': ["thphonetic.json", "CnsPhonetic.json", "bpmf.json", "thphonetic.txt"],
-        'checj': ["checj.json", "mscj3.json", "mscj3-ext.json", "cj-ext.json", "cnscj.json", "thcj.json", "newcj3.json", "cj5.json", "newcj.json", "scj6.json", "cj-fast.json", "thcj.txt"],
-        'chedayi': ["thdayi.json", "dayi4.json", "dayi3.json", "thdayi.txt"],
-        'chearray': ["tharray.json", "array30.json", "ar30-big.json", "array40.json", "tharray.txt"],
-        'shared': ["gpl.txt"]
-    }
-    
-    json_lines = []
-    json_lines.append('<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">')
-    json_lines.append('  <Fragment>')
-    json_lines.append('    <DirectoryRef Id="INSTALLFOLDER_CINBASE">')
-    json_lines.append('      <Directory Id="dir_cinbase_json" Name="json" />')
-    json_lines.append('    </DirectoryRef>')
-    json_lines.append('  </Fragment>')
-    
-    for ime, files in ime_json_map.items():
-        json_lines.append('  <Fragment>')
-        json_lines.append(f'    <ComponentGroup Id="Cinbase_Json_{ime}" Directory="dir_cinbase_json">')
-        for f in files:
-            file_path = os.path.join(stage_dir, 'python', 'cinbase', 'json', f)
-            if os.path.exists(file_path):
-                h = hashlib.md5(f.encode('utf-8')).hexdigest()[:16]
-                cmp_id = f"cmp_json_{ime}_{h}"
-                file_id = f"fil_json_{ime}_{h}"
-                json_lines.append(f'      <Component Id="{cmp_id}" Guid="*">')
-                json_lines.append(f'        <File Id="{file_id}" KeyPath="yes" Source="$(var.CinbaseDir)\\json\\{f}" />')
-                json_lines.append('      </Component>')
-        json_lines.append('    </ComponentGroup>')
-        json_lines.append('  </Fragment>')
-    
-    json_lines.append('</Wix>')
-    
-    json_output_file = os.path.join(target_installer_dir, 'Harvest_CinbaseJson.wxs')
-    with open(json_output_file, 'w', encoding='utf-8') as out:
-        out.write('\n'.join(json_lines) + '\n')
-    print(f"Generated {json_output_file} for separated JSON dictionaries.")

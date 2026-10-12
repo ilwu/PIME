@@ -1,10 +1,10 @@
-import os
-import sys
-import shutil
+import glob
 import json
-import zipfile
+import os
 import py_compile
 import compileall
+import shutil
+import zipfile
 
 def main():
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -19,7 +19,37 @@ def main():
     shutil.copytree(os.path.join(repo_root, "python"), os.path.join(stage_dir, "python"))
     shutil.copytree(os.path.join(repo_root, "node"), os.path.join(stage_dir, "node"))
     
-    # 2. Minify cinbase/json/*.json
+    # 2. Stage Rime data from brise submodule and opencc
+    print("Staging Rime data...")
+    rime_dir = os.path.join(stage_dir, "python", "input_methods", "rime")
+    rime_brise = os.path.join(repo_root, "python", "input_methods", "rime", "brise")
+    rime_data = os.path.join(rime_dir, "data")
+    rime_opencc = os.path.join(rime_data, "opencc")
+    os.makedirs(rime_data, exist_ok=True)
+    os.makedirs(rime_opencc, exist_ok=True)
+
+    if os.path.exists(rime_brise):
+        for pattern in ["*.txt", "*.yaml"]:
+            for f in glob.glob(os.path.join(rime_brise, pattern)):
+                shutil.copy2(f, rime_data)
+        for subdir in ["preset", "supplement", "extra"]:
+            subpath = os.path.join(rime_brise, subdir)
+            if os.path.exists(subpath):
+                for f in glob.glob(os.path.join(subpath, "*.yaml")):
+                    shutil.copy2(f, rime_data)
+
+    opencc_src = os.path.join(repo_root, "python", "opencc")
+    if os.path.exists(opencc_src):
+        for pattern in ["*.json", "*.ocd"]:
+            for f in glob.glob(os.path.join(opencc_src, pattern)):
+                shutil.copy2(f, rime_opencc)
+
+    # Remove raw brise submodule directory from staged rime
+    staged_brise = os.path.join(rime_dir, "brise")
+    if os.path.exists(staged_brise):
+        shutil.rmtree(staged_brise)
+
+    # 3. Minify cinbase/json/*.json
     print("Minifying JSON...")
     json_dir = os.path.join(stage_dir, "python", "cinbase", "json")
     if os.path.exists(json_dir):
@@ -31,7 +61,7 @@ def main():
                 with open(fpath, "w", encoding="utf-8") as file:
                     json.dump(data, file, ensure_ascii=False, separators=(',', ':'))
                     
-    # 3. Store python3*.zip uncompressed
+    # 4. Store python3*.zip uncompressed
     print("Re-storing python zip uncompressed...")
     py_dir = os.path.join(stage_dir, "python", "python3")
     if os.path.exists(py_dir):
@@ -45,10 +75,12 @@ def main():
             temp_zip = zip_path + ".tmp"
             with zipfile.ZipFile(zip_path, 'r') as zin, zipfile.ZipFile(temp_zip, 'w', compression=zipfile.ZIP_STORED) as zout:
                 for item in zin.infolist():
-                    zout.writestr(item, zin.read(item.filename))
+                    data = zin.read(item.filename)
+                    item.compress_type = zipfile.ZIP_STORED
+                    zout.writestr(item, data)
             os.replace(temp_zip, zip_path)
         
-    # 4. Exclude dev files
+    # 5. Exclude dev files
     print("Excluding dev files...")
     exclude_exts = [".map"]
     exclude_files = ["python.cat"]
@@ -57,9 +89,15 @@ def main():
             if any(file.endswith(ext) for ext in exclude_exts) or file in exclude_files:
                 os.remove(os.path.join(root, file))
                 
-    # 5. Precompile Python bytecode
+    # 6. Precompile Python bytecode
     print("Precompiling Python bytecode...")
-    compileall.compile_dir(os.path.join(stage_dir, "python"), force=True, invalidation_mode=py_compile.PycInvalidationMode.CHECKED_HASH, quiet=1)
+    compileall.compile_dir(
+        os.path.join(stage_dir, "python"),
+        force=True,
+        invalidation_mode=py_compile.PycInvalidationMode.UNCHECKED_HASH,
+        ddir=r"C:\Program Files (x86)\PIME\python",
+        quiet=1
+    )
 
     print("Staging complete.")
 
