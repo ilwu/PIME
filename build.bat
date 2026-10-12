@@ -45,11 +45,17 @@ if "%VCVARS%"=="" (
     exit /b 1
 )
 
-cmd /c "call ""%VCVARS%"" x64_arm64 && link /nologo /dll /noentry /machine:arm64x /defArm64Native:build_arm64\arm64.def /def:build_arm64\x64.def /out:build_arm64\PIMETextService_forwarder.dll"
+call "%VCVARS%" x64_arm64
+if %ERRORLEVEL% NEQ 0 (
+    echo Error: Failed to initialize VC environment for ARM64X.
+    exit /b %ERRORLEVEL%
+)
+link /nologo /dll /noentry /nodefaultlib /machine:arm64x /defArm64Native:build_arm64\arm64.def /def:build_arm64\x64.def /out:build_arm64\PIMETextService_forwarder.dll
 if %ERRORLEVEL% NEQ 0 (
     echo Error: Failed to link ARM64X forwarder DLL.
     exit /b %ERRORLEVEL%
 )
+set "Platform="
 
 copy /y build_arm64\PIMETextService\Release\PIMETextService.dll build_arm64\PIMETextService\Release\PIMETextService_arm64.dll
 if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
@@ -98,7 +104,8 @@ cd installer
 if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
 ..\python\python3\python.exe generate_harvest_wxs.py
 if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
-    dotnet build PIME_WiX.sln -c Release
+    set "Platform="
+    dotnet build PIME_Core\PIME_Core.wixproj -c Release
     if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
     
     echo "Creating single multilingual MSI..."
