@@ -143,11 +143,12 @@ def main():
                 
     # 6. Precompile Python bytecode
     print("Precompiling Python bytecode...")
+    python_stage = os.path.join(stage_dir, "python")
     compileall.compile_dir(
-        os.path.join(stage_dir, "python"),
+        python_stage,
         force=True,
         invalidation_mode=py_compile.PycInvalidationMode.UNCHECKED_HASH,
-        ddir=r"C:\Program Files (x86)\PIME\python",
+        stripdir=python_stage,
         quiet=1
     )
 
