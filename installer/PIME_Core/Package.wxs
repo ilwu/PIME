@@ -279,13 +279,13 @@
         <File Id="fil_PIMETextService_x64" Source="..\..\build64\PIMETextService\Release\PIMETextService.dll" KeyPath="yes" />
       </Component>
       <Component Id="cmp_PIMETextService_arm64" Directory="ARM64DIR" Guid="D3D921EB-00AC-4355-87B7-E498BA6F0EB6" Condition="NATIVE_ARCH=&quot;ARM64&quot;">
-        <File Id="fil_PIMETextService_arm64_fwd" Source="..\..\build_arm64\PIMETextService\Release\PIMETextService.dll" KeyPath="yes" />
+        <File Id="fil_PIMETextService_arm64_fwd" Name="PIMETextService.dll" Source="..\..\build_arm64\PIMETextService\Release\PIMETextService_forwarder.dll" KeyPath="yes" />
       </Component>
       <Component Id="cmp_PIMETextService_arm64_real" Directory="ARM64DIR" Guid="B4D921EB-00AC-4355-87B7-E498BA6F0EB7" Condition="NATIVE_ARCH=&quot;ARM64&quot;">
-        <File Id="fil_PIMETextService_arm64_real" Source="..\..\build_arm64\PIMETextService\Release\PIMETextService_arm64.dll" KeyPath="yes" />
+        <File Id="fil_PIMETextService_arm64_real" Name="PIMETextService_arm64.dll" Source="..\..\build_arm64\PIMETextService\Release\PIMETextService.dll" KeyPath="yes" />
       </Component>
       <Component Id="cmp_PIMETextService_x64_real" Directory="ARM64DIR" Guid="C5D921EB-00AC-4355-87B7-E498BA6F0EB8" Condition="NATIVE_ARCH=&quot;ARM64&quot;">
-        <File Id="fil_PIMETextService_x64_real" Source="..\..\build_arm64\PIMETextService\Release\PIMETextService_x64.dll" KeyPath="yes" />
+        <File Id="fil_PIMETextService_x64_real" Name="PIMETextService_x64.dll" Source="..\..\build64\PIMETextService\Release\PIMETextService.dll" KeyPath="yes" />
       </Component>
     </ComponentGroup>
 
