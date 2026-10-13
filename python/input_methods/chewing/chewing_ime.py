@@ -514,6 +514,7 @@ class ChewingTextService(TextService):
                     if candCount == 0 or candCursor >= candCount:
                         return False
                     target_phrase = self.candidateList[candCursor]
+                    phraseConnect = None
                     try:
                         phraseConnect = sqlite3.connect(chewingConfig.getUserPhrase())
                         cursor = phraseConnect.cursor()
@@ -547,7 +548,7 @@ class ChewingTextService(TextService):
                     except Exception as err:
                         self.showMessage(str(err), 2)
                     finally:
-                        if 'phraseConnect' in locals() and phraseConnect:
+                        if phraseConnect:
                             try: phraseConnect.close()
                             except Exception: pass
 
