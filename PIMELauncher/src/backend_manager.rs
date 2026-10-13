@@ -230,8 +230,7 @@ impl BackendManager {
                 '"' => in_quotes = !in_quotes,
                 ' ' | '\t' if !in_quotes => {
                     if !current_arg.is_empty() {
-                        args_vec.push(current_arg.clone());
-                        current_arg.clear();
+                        args_vec.push(std::mem::take(&mut current_arg));
                     }
                 }
                 _ => current_arg.push(c),
