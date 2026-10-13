@@ -56,22 +56,13 @@ pub fn is_notification_message(message: &str) -> bool {
     false
 }
 
-/// Extracts the `seqNum` from a JSON payload if present.
-pub fn extract_seq_num(payload: &str) -> Option<i64> {
-    // If the message is wrapped (e.g. `client_id|{...}`), extract the JSON part.
-    let json_str = payload.split_once('|').map(|(_, p)| p).unwrap_or(payload);
-    
-    // Quick fast-path check to avoid parsing non-JSON or messages without seqNum
+/// Extracts the `seqNum` field from a pure JSON payload (no `client_id|` prefix).
+pub fn extract_seq_num(json_str: &str) -> Option<i64> {
+    // Fast path: skip parsing messages that cannot contain a seqNum.
     if !json_str.contains("\"seqNum\"") {
         return None;
     }
-    
-    if let Ok(json) = serde_json::from_str::<serde_json::Value>(json_str) {
-        if let Some(seq_num) = json.get("seqNum").and_then(|v| v.as_i64()) {
-            return Some(seq_num);
-        }
-    }
-    None
+    serde_json::from_str::<Value>(json_str).ok()?.get("seqNum")?.as_i64()
 }
 
 #[cfg(test)]
@@ -125,5 +116,11 @@ mod tests {
         assert!(is_notification_message(r#"c1|{"method": "close"}"#));
         assert!(!is_notification_message(r#"c1|{"method":"onKeyDown"}"#));
         assert!(!is_notification_message("invalid"));
+    }
+
+    #[test]
+    fn test_extract_seq_num_with_pipe_in_payload() {
+        assert_eq!(extract_seq_num(r#"{"commitString":"a|b","seqNum":7}"#), Some(7));
+        assert_eq!(extract_seq_num(r#"{"success":true}"#), None);
     }
 }

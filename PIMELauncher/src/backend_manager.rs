@@ -358,7 +358,8 @@ impl BackendManager {
                         return BackendExitReason::Normal;
                     };
                     if !protocol::is_notification_message(&data) {
-                        if let Some(seq_num) = protocol::extract_seq_num(&data) {
+                        let json_part = data.split_once('|').map_or(data.as_str(), |(_, p)| p);
+                        if let Some(seq_num) = protocol::extract_seq_num(json_part) {
                             let mut map = pending_requests.lock().unwrap();
                             map.insert(seq_num, tokio::time::Instant::now());
                         }
