@@ -105,12 +105,17 @@ jobs:
       # Build MSI installers and multilingual package with signed binaries.
       # ---------------------------------------------------------------
       - name: Build the installer (WiX)
+        shell: cmd
         run: |
           cd installer
           ..\python\python3\python.exe stage_payload.py
+          if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
           ..\python\python3\python.exe generate_harvest_wxs.py
-          dotnet build PIME_WiX.sln -c Release
+          if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
+          dotnet build PIME_Core\PIME_Core.wixproj -c Release
+          if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
           call build_multilingual.bat
+          if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
           cd ..
 
       # ---------------------------------------------------------------

@@ -4,20 +4,57 @@ import os
 import py_compile
 import compileall
 import shutil
+import stat
+import subprocess
+import time
 import zipfile
+
+def remove_dir(path):
+    if not os.path.exists(path):
+        return
+    if os.name == 'nt':
+        try:
+            subprocess.run(["cmd.exe", "/c", "rd", "/s", "/q", os.path.normpath(path)], check=True, capture_output=True)
+            if not os.path.exists(path):
+                return
+        except Exception:
+            pass
+
+    def on_error(func, p, exc_info):
+        try:
+            os.chmod(p, stat.S_IWRITE)
+            func(p)
+        except Exception:
+            pass
+
+    for _ in range(5):
+        try:
+            shutil.rmtree(path, onerror=on_error)
+            if not os.path.exists(path):
+                return
+        except OSError:
+            time.sleep(0.2)
 
 def main():
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     stage_dir = os.path.join(repo_root, "build", "stage")
     
     if os.path.exists(stage_dir):
-        shutil.rmtree(stage_dir)
+        remove_dir(stage_dir)
     os.makedirs(stage_dir)
     
     # 1. Copy python/ and node/
     print("Copying python and node...")
-    shutil.copytree(os.path.join(repo_root, "python"), os.path.join(stage_dir, "python"))
-    shutil.copytree(os.path.join(repo_root, "node"), os.path.join(stage_dir, "node"))
+    shutil.copytree(
+        os.path.join(repo_root, "python"),
+        os.path.join(stage_dir, "python"),
+        ignore=shutil.ignore_patterns(".git", "__pycache__", "*.pyc")
+    )
+    shutil.copytree(
+        os.path.join(repo_root, "node"),
+        os.path.join(stage_dir, "node"),
+        ignore=shutil.ignore_patterns(".git", "node_modules")
+    )
     
     # 2. Stage Rime data from brise submodule and opencc
     print("Staging Rime data...")
@@ -47,22 +84,22 @@ def main():
     # Remove raw brise submodule directory from staged rime
     staged_brise = os.path.join(rime_dir, "brise")
     if os.path.exists(staged_brise):
-        shutil.rmtree(staged_brise)
+        remove_dir(staged_brise)
 
     # 3. Stage bundled emojime and clean up input_methods build artifacts
     emojime_stage = os.path.join(stage_dir, "node", "input_methods", "emojime")
     emojime_dist = os.path.join(emojime_stage, "dist", "index.js")
     if os.path.exists(emojime_dist):
         shutil.copy2(emojime_dist, os.path.join(emojime_stage, "index.js"))
-        shutil.rmtree(os.path.join(emojime_stage, "dist"), ignore_errors=True)
-        shutil.rmtree(os.path.join(emojime_stage, "src"), ignore_errors=True)
+        remove_dir(os.path.join(emojime_stage, "dist"))
+        remove_dir(os.path.join(emojime_stage, "src"))
 
     im_dir = os.path.join(stage_dir, "node", "input_methods")
     if os.path.exists(im_dir):
         for im in os.listdir(im_dir):
             im_nm = os.path.join(im_dir, im, "node_modules")
             if os.path.exists(im_nm):
-                shutil.rmtree(im_nm, ignore_errors=True)
+                remove_dir(im_nm)
 
     # 4. Minify cinbase/json/*.json
     print("Minifying JSON...")
