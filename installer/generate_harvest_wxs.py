@@ -167,8 +167,7 @@ if __name__ == '__main__':
     for folder, cg, dref, vname in node_ims:
         src = os.path.join(stage_dir, 'node', 'input_methods', folder)
         if os.path.exists(src):
-            exclude = ['.git']
-            # Note: emojime includes committed node_modules/emojione runtime dependency
+            exclude = ['.git', 'node_modules']
             generate_wxs(
                 dir_path=src,
                 component_group_id=cg,

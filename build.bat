@@ -102,6 +102,12 @@ cmd /C rd /s /q node\input_methods\McTabim
 cmd /C mkdir node\input_methods\McTabim
 cmd /C xcopy /s /q /y /f McTabimWeb\output\pime node\input_methods\McTabim\.
 
+echo "Start building emojime"
+cd node\input_methods\emojime
+cmd /C npm install
+cmd /C npm run build
+cd ..\..\..
+
 echo "Start building PIME Installer"
 cd installer
 ..\python\python3\python.exe stage_payload.py

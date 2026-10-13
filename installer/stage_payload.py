@@ -49,7 +49,22 @@ def main():
     if os.path.exists(staged_brise):
         shutil.rmtree(staged_brise)
 
-    # 3. Minify cinbase/json/*.json
+    # 3. Stage bundled emojime and clean up input_methods build artifacts
+    emojime_stage = os.path.join(stage_dir, "node", "input_methods", "emojime")
+    emojime_dist = os.path.join(emojime_stage, "dist", "index.js")
+    if os.path.exists(emojime_dist):
+        shutil.copy2(emojime_dist, os.path.join(emojime_stage, "index.js"))
+        shutil.rmtree(os.path.join(emojime_stage, "dist"), ignore_errors=True)
+        shutil.rmtree(os.path.join(emojime_stage, "src"), ignore_errors=True)
+
+    im_dir = os.path.join(stage_dir, "node", "input_methods")
+    if os.path.exists(im_dir):
+        for im in os.listdir(im_dir):
+            im_nm = os.path.join(im_dir, im, "node_modules")
+            if os.path.exists(im_nm):
+                shutil.rmtree(im_nm, ignore_errors=True)
+
+    # 4. Minify cinbase/json/*.json
     print("Minifying JSON...")
     json_dir = os.path.join(stage_dir, "python", "cinbase", "json")
     if os.path.exists(json_dir):
